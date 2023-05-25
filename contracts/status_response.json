@@ -1,0 +1,14 @@
+{
+    "method": "GET",
+    "http-code": 200,
+    "description": "Status do emprestimo",
+    "body": {
+        "total_value_to_pay": "string",
+        "interest_rate_per_year": "string",
+        "value_per_month": "float",
+        "number_of_installments_to_pay": "int",
+        "number_of_late_installments" : "int",
+        "number_of_installments_payed": "int",
+        "loan_id": "string"
+    }
+}

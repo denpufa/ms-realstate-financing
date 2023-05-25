@@ -1,0 +1,6 @@
+{
+    "method" : "POST",
+    "body": {
+        "fee_percent_per_year": "float"
+    }
+}
