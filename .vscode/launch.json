@@ -22,7 +22,18 @@
             "program": "${workspaceFolder}/realstate/manage.py",
             "args": [
                 "test",
-                "loan.api.tests.tests.LoanRealStateTestCase.test_loan_simulation"
+                "loan.api.tests.tests.LoanRealStateTestCase"
+            ],
+            "django": true,
+            "justMyCode": true
+        },
+        {
+            "name": "Python: Migrate",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/realstate/manage.py",
+            "args": [
+                "migrate"
             ],
             "django": true,
             "justMyCode": true

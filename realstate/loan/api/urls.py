@@ -11,7 +11,7 @@ urlpatterns = [
     path('simulation/',SimulationRealStateLoanView.as_view()),
     path('',RealStateLoanView.as_view()),
     path('financial-deferment/',FinancialDefermentView.as_view()),
-    path('status/',RealStateLoanStatusView.as_view()),
+    path('status/<str:loan_id>/',RealStateLoanStatusView.as_view()),
     path('fee/',RealStateFeeView.as_view())
 
 ]

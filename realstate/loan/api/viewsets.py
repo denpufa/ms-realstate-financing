@@ -1,5 +1,11 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from .serializers import (FeeSerializer,
+                          RealStateLoanSerializer,
+                          RealStateLoanSimulationSerializer)
+from loan.models import Fee, RealStateLoan
+
+BASIC_FEE = 12.0
 
 class SimulationRealStateLoanView(APIView):
 
@@ -16,17 +22,32 @@ class SimulationRealStateLoanView(APIView):
     """
     def post(self,request,format=None):
 
-      value_to_pay = request.data['real_state_total_value'] - request.data['entry_value']
-      value_to_pay = value_to_pay*1.1
-      value_per_month =  value_to_pay/request.data['number_of_installments']
-      data = {
-          'total_value': value_to_pay,
-          'interest_rate_per_year': '10%',
-          'value_per_month': value_per_month,
-          'number_of_installments': request.data['number_of_installments']
-       }
+        data = request.data
+        value_to_pay = data['real_state_total_value'] - data['entry_value']
 
-      return Response(data,200)
+        #get fee
+        try:
+            fee = Fee.active.first().fee_percent
+        except:
+            fee = BASIC_FEE
+
+
+        data['value_per_month'] =  value_to_pay/request.data['number_of_installments']
+
+        #credit risck
+        if data['value_per_month'] > data['monthly_income']*0.25:
+            fee += 10
+
+        data['loan_total_value'] = value_to_pay*fee/100 + value_to_pay
+
+        data['user_id'] = request.headers['user_id']
+        data['interest_rate_per_year'] = fee/(data['number_of_installments']/12)
+
+        serializer = RealStateLoanSimulationSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data,200)
 
     @classmethod
     def get_extra_actions(cls):
@@ -46,20 +67,33 @@ class RealStateLoanView(APIView):
         }`
     """
 
-
     def post(self, request, format=None):
 
-        value_to_pay = request.data['real_state_total_value'] - request.data['entry_value']
-        value_to_pay = value_to_pay*1.1
-        value_per_month =  value_to_pay/request.data['number_of_installments']
-        data = {
-            'total_value': value_to_pay,
-            'interest_rate_per_year': '10%',
-            'value_per_month': value_per_month,
-            'number_of_installments': request.data['number_of_installments']
-        }
+        data = request.data
+        value_to_pay = data['real_state_total_value'] - data['entry_value']
 
-        return Response(data,200)
+        #get fee
+        try:
+            fee = Fee.active.first().fee_percent
+        except:
+            fee = BASIC_FEE
+
+        data['value_per_month'] =  value_to_pay/request.data['number_of_installments']
+
+        #credit risck
+        if data['value_per_month'] > data['monthly_income']*0.25:
+            fee += 10
+
+        data['loan_total_value'] = value_to_pay*fee/100 + value_to_pay
+
+        data['user_id'] = request.headers['user_id']
+        data['interest_rate_per_year'] = fee/(data['number_of_installments']/12)
+
+        serializer = RealStateLoanSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data,200)
 
     @classmethod
     def get_extra_actions(cls):
@@ -71,22 +105,32 @@ class FinancialDefermentView(APIView):
         Adiantamento de parcelas do financiamento,
         com corpo da requisição:
          `{
-            "deferment_total_value": "string",
             "number_of_installments": "int",
             "loan_id": "string"
         }`
     """
 
-
     def post(self, request, format=None):
 
-        data = {
-            'loan_id': request.data['loan_id'],
-            'deferment_total_value': request.data['deferment_total_value'],
-            'number_of_installments': request.data['number_of_installments'],
-        }
+        loan = RealStateLoan.active.filter(id=request.data['loan_id'])
+        if loan.exists():
+            loan = loan.first()
+            if loan.installments_payed + request.data['number_of_installments'] > loan.number_of_installments :
+                return Response({'error':'O número de parcelas adiantadas é maior que o restante'},400)
 
-        return Response(data,200)
+            loan.installments_payed = loan.installments_payed + request.data['number_of_installments']
+            loan.save()
+
+            status_code = 200
+            data = {
+                'loan_id': request.data['loan_id'],
+                'number_of_installments_payed': loan.installments_payed
+            }
+        else:
+            status_code = 404
+            data = {'error':'Não encontrado o emprestimo'}
+
+        return Response(data,status_code)
 
     @classmethod
     def get_extra_actions(cls):
@@ -98,20 +142,18 @@ class RealStateLoanStatusView(APIView):
         Status do financiamento imobiliario
     """
 
+    def get(self, request, loan_id, format=None):
 
-    def get(self, request, format=None):
+        loan = RealStateLoan.active.filter(id=loan_id)
+        if loan.exists():
+            status_code = 200
+            data  = RealStateLoanSerializer(instance=loan.first()).data
+        else:
+            status_code = 404
+            data = {"info":"Não encontrado o financiamento"}
 
-        data = {
-            "total_value_to_pay": "1.000",
-            "interest_rate_per_year": "10%",
-            "value_per_month": 100,
-            "number_of_installments_to_pay": 5,
-            "number_of_late_installments" : 0,
-            "number_of_installments_payed": 5,
-            "loan_id": "das91i3m1keda0131ads"
-            }
 
-        return Response(data,200)
+        return Response(data,status_code)
 
     @classmethod
     def get_extra_actions(cls):
@@ -123,21 +165,25 @@ class RealStateFeeView(APIView):
         Definição da taxa anual percentual de juros,
         com corpo da requisição:
         `{
-            "fee_percent_per_year": "float"
+            "fee_percent": "float"
         }`
     """
 
     def post(self, request, format=None):
 
-        data =  {
-            "fee_percent_per_year": 10
-        }
+        serializer = FeeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
 
-        return Response(data,200)
+        #deactivate the old tax
+        for obj in Fee.active.all():
+            if obj.id == serializer.instance.id:
+                continue
+            obj.active = None
+            obj.save()
+
+        return Response(serializer.data,200)
 
     @classmethod
     def get_extra_actions(cls):
         return []
-
-
-

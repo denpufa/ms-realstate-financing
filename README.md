@@ -8,7 +8,7 @@
 | loan/real-state/v1/simulation | POST | Solicitar simulação recebendo valores de parcela, quantidade de parcelas, valor total a ser pago, juros ao anos, apartir dos dados de valor de entrada, total do imovel, renda mensal. |
 | loan/real-state/v1/ | POST | Solicitar um financiamento imobiliario com valor de entrada, valor total do imovel, renda mensal |
 | loan/real-state/financial-deferment/ | POST | Solicitar pagamento adiantado de parcelas |
-| loan/real-state/v1/status | GET | Atualizar status corrente do empréstimo |
+| loan/real-state/v1/status/{loan_id}/ | GET | Atualizar status corrente do empréstimo |
 | loan/real-state/v1/fee | POST | Definir a taxa de juros praticada |
 
 
