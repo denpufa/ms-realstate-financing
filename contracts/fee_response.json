@@ -1,8 +1,0 @@
-{
-    "method": "POST",
-    "http-code": 200,
-    "description": "Definição da taxa de juros",
-    "body": {
-        "fee_percent_per_year": "float"
-    }
-}

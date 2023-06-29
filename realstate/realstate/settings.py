@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
-
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-nae=dwnezc8ha)83@(*g6qjg$d0@vngx9mglj_k3@5q9@6$8_!'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG','true').lower() == 'true'
 
 ALLOWED_HOSTS = []
 
@@ -79,6 +79,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+
     }
 }
 
@@ -100,6 +101,13 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+# rabbit
+RABBIT_HOST = os.getenv('RABBIT_HOST','35.199.70.141')
+RABBIT_PORT = os.getenv('RABBIT_PORT','5672')
+RABBIT_USERNAME = os.getenv('RABBIT_USERNAME','admin')
+RABBIT_PASSWORD = os.getenv('RABBIT_PASSWORD','password@vascobank123')
+RABBIT_LOG_QUEUE = os.getenv('RABBIT_LOG_QUEUE','vascobank.logs')
 
 
 # Internationalization

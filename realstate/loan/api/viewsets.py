@@ -4,6 +4,9 @@ from .serializers import (FeeSerializer,
                           RealStateLoanSerializer,
                           RealStateLoanSimulationSerializer)
 from loan.models import Fee, RealStateLoan
+from loan.services import LogService,IpService
+from django.conf import settings
+import time
 
 BASIC_FEE = 12.0
 
@@ -13,7 +16,6 @@ class SimulationRealStateLoanView(APIView):
         Simulação de financiamento imobiliario,
         com corpo da requisição:
          `{
-            "user_id" : "string",
             "real_state_total_value": "float",
             "entry_value" : "float",
             "monthly_income" : "float",
@@ -47,6 +49,7 @@ class SimulationRealStateLoanView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
+
         return Response(serializer.data,200)
 
     @classmethod
@@ -59,7 +62,6 @@ class RealStateLoanView(APIView):
         Financiamento imobiliario,
         com corpo da requisição:
          `{
-            "user_id" : "string",
             "real_state_total_value": "float",
             "entry_value" : "float",
             "monthly_income" : "float",
@@ -92,6 +94,21 @@ class RealStateLoanView(APIView):
         serializer = RealStateLoanSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        # send to log
+        LogService().send_log(
+            {
+                "timestamp" : str(time.time()),
+                "level" : "INFO",
+                "microservice" : "ms-realstate-financing",
+                "thread" : "main",
+                "class" : self.__class__.__name__,
+                "method" : "info",
+                "message" : "Novo emprestimo imobiliario realizado",
+                "context" : "default",
+                "ip" : IpService().get_my_ip()
+
+            })
 
         return Response(serializer.data,200)
 
@@ -181,6 +198,21 @@ class RealStateFeeView(APIView):
                 continue
             obj.active = None
             obj.save()
+
+        # send to log
+        LogService().send_log(
+            {
+                "timestamp" : str(time.time()),
+                "level" : "INFO",
+                "microservice" : "ms-realstate-financing",
+                "thread" : "main",
+                "class" : self.__class__.__name__,
+                "method" : "info",
+                "message" : "Nova taxa de juros definida",
+                "context" : "default",
+                "ip" : IpService.get_my_ip()
+
+            })
 
         return Response(serializer.data,200)
 
