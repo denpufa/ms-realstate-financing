@@ -22,7 +22,7 @@
             "program": "${workspaceFolder}/realstate/manage.py",
             "args": [
                 "test",
-                "loan.api.tests.tests.LoanRealStateTestCase"
+                "loan.api.tests.tests.LoanRealStateTestCase.test_post_fee"
             ],
             "django": true,
             "justMyCode": true

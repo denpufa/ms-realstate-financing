@@ -109,6 +109,8 @@ RABBIT_USERNAME = os.getenv('RABBIT_USERNAME','admin')
 RABBIT_PASSWORD = os.getenv('RABBIT_PASSWORD','password@vascobank123')
 RABBIT_LOG_QUEUE = os.getenv('RABBIT_LOG_QUEUE','vascobank.logs')
 
+# payment
+PAYMENT_API_HOST = os.getenv('PAYMENT_API_HOST','')
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
